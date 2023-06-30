@@ -14,11 +14,11 @@ export const routes = {
         Element: GlobalFeedPage,
     },
     profile: {
-        path: '/@:profile',
+        path: '/:profile',
         Element: ProfilePage,
     },
     profileFavorites: {
-        path: '/@:profile/favorites',
+        path: '/:profile/favorites',
         Element: ProfilePage,
     },
     singleArticle: {
