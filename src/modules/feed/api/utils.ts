@@ -1,4 +1,4 @@
-import { Drafted } from 'immer/dist/internal';
+import { Draft } from 'immer';
 import { RootState } from '../../../store/store';
 import { Profile } from '../../profile/api/dto/follow-user.in';
 import { FeedArticle, GlobalFeedInDTO } from './dto/global-feed.in';
@@ -33,7 +33,7 @@ const updateFeed = <Q>(
             feedApi.util.updateQueryData(
                 feedKey,
                 queryItem!.originalArgs as Q,
-                (draft: Drafted<FeedData> | Drafted<SingleArticleInDTO>) => {
+                (draft: Draft<FeedData> | Draft<SingleArticleInDTO>) => {
                     if ('articles' in draft) {
                         const updateId = draft.articles.findIndex(
                             (article) => article.slug === data.article.slug
@@ -91,7 +91,7 @@ const updateProfile = <Q>(
                 feedKey as any,
                 queryItem!.originalArgs as Q,
                 (draft) => {
-                    (draft as Drafted<SingleArticleInDTO>).article.author.following =
+                    (draft as Draft<SingleArticleInDTO>).article.author.following =
                         data.profile.following;
                 }
             )

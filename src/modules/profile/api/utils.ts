@@ -1,4 +1,4 @@
-import { Drafted } from 'immer/dist/internal';
+import { Draft } from 'immer';
 import { RootState } from '../../../store/store';
 import { replacesCachedProfileInArticle } from '../../feed/api/utils';
 import { Profile } from './dto/follow-user.in';
@@ -32,7 +32,7 @@ const updateProfile = <Q>(
             profileApi.util.updateQueryData(
                 feedKey,
                 queryItem!.originalArgs as Q,
-                (draft: Drafted<GetProfileInDTO>) => {
+                (draft: Draft<GetProfileInDTO>) => {
                     draft.profile.following = data.profile.following;
                 }
             )
