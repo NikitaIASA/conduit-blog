@@ -1,4 +1,4 @@
-import { Draft } from 'immer';
+import { Drafted } from 'immer/dist/internal';
 import { RootState } from '../../../store/store';
 import { Profile } from '../../profile/api/dto/follow-user.in';
 import { ArticleCommentsInDTO } from './dto/article-comments.in';
@@ -34,7 +34,7 @@ const updateFeed = <Q>(
             feedApi.util.updateQueryData(
                 feedKey,
                 queryItem!.originalArgs as Q,
-                (draft: Draft<FeedData> | Draft<SingleArticleInDTO>) => {
+                (draft: Drafted<FeedData> | Drafted<SingleArticleInDTO>) => {
                     if ('articles' in draft) {
                         const updateId = draft.articles.findIndex(
                             (article) => article.slug === data.article.slug
@@ -93,7 +93,7 @@ const updateProfile = <Q>(
                 feedKey as any,
                 queryItem!.originalArgs as Q,
                 (draft) => {
-                    (draft as Draft<SingleArticleInDTO>).article.author.following =
+                    (draft as Drafted<SingleArticleInDTO>).article.author.following =
                         data.profile.following;
                 }
             )
@@ -137,16 +137,57 @@ export const addNewCommentToCache = async (
                 continue;
             }
 
-            debugger;
+            dispatch(
+                feedApi.util.updateQueryData(
+                    feedKey as any,
+                    queryItem!.originalArgs,
+                    (draft) => {
+                        const original = draft as Drafted<ArticleCommentsInDTO>;
+
+                        original.comments.unshift(data.comment);
+                    }
+                )
+            );
+        }
+    } catch (e) { }
+};
+
+interface RemoveFromCacheOptionsMeta {
+    id: number;
+}
+
+export const removeCommentFromCache = async (
+    getState: any,
+    queryFulfilled: any,
+    dispatch: any,
+    meta: RemoveFromCacheOptionsMeta
+) => {
+    const state = getState() as RootState;
+
+    try {
+        await queryFulfilled;
+        const feedKeys = Object.keys(state.feedApi.queries);
+        const feedKey = 'getCommentsForArticle';
+
+        for (
+            let i = 0, key = feedKeys[i], queryItem = state.feedApi.queries[key];
+            i < feedKeys.length;
+            i++, key = feedKeys[i], queryItem = state.feedApi.queries[key]
+        ) {
+            if (!key.startsWith(feedKey)) {
+                continue;
+            }
 
             dispatch(
                 feedApi.util.updateQueryData(
                     feedKey as any,
                     queryItem!.originalArgs,
                     (draft) => {
-                        const original = draft as Draft<ArticleCommentsInDTO>;
+                        const original = draft as Drafted<ArticleCommentsInDTO>;
 
-                        original.comments.unshift(data.comment);
+                        original.comments = original.comments.filter(
+                            (comment) => comment.id !== meta.id
+                        );
                     }
                 )
             );
