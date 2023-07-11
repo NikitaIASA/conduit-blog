@@ -45,5 +45,6 @@ export const Article: FC<ArticleProps> = ({
         </Link>
       </div>
     </article>
+    
   );
 };

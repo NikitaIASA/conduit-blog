@@ -2,6 +2,8 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { realWorldBaseQuery } from '../../../core/api/realworld-base-query';
 import { FEED_PAGE_SIZE } from '../consts';
 import { ArticleCommentsInDTO } from './dto/article-comments.in';
+import { CreateArticleInDTO } from './dto/create-article.in';
+import { CreateArticleOutDTO } from './dto/create-article.out';
 import { FavoriteArticleInDTO } from './dto/favorite-article.in';
 import { FeedArticle } from './dto/global-feed.in';
 import { PopularTagsInDTO } from './dto/popular-tags.in';
@@ -35,12 +37,20 @@ interface FavoriteArticleParams {
   slug: string;
 }
 
+interface CreateArticleParams {
+  title: string;
+  description: string;
+  body: string;
+  tags: string;
+}
+
 export const feedApi = createApi({
   reducerPath: 'feedApi',
   baseQuery: realWorldBaseQuery,
-  tagTypes: ['Article', 'Articles'],
   endpoints: (builder) => ({
+    // queries
     getGlobalFeed: builder.query<FeedData, GlobalFeedParams>({
+      keepUnusedDataFor: 1,
       query: ({ page, tag, isPersonalFeed }) => ({
         url: isPersonalFeed ? '/articles/feed' : '/articles',
         params: {
@@ -50,15 +60,9 @@ export const feedApi = createApi({
         },
       }),
       transformResponse,
-      providesTags: (result) =>
-        result
-          ? result?.articles.map((article) => ({
-            type: 'Article',
-            slug: article.slug,
-          }))
-          : ['Articles'],
     }),
     getProfileFeed: builder.query<FeedData, ProfilePeedParams>({
+      keepUnusedDataFor: 1,
       query: ({ page, author, isFavorite = false }) => ({
         url: '/articles',
         params: {
@@ -76,6 +80,7 @@ export const feedApi = createApi({
       }),
     }),
     getSingleArticle: builder.query<SingleArticleInDTO, SingleArticleParams>({
+      keepUnusedDataFor: 1,
       query: ({ slug }) => ({
         url: `/articles/${slug}`,
       }),
@@ -88,6 +93,9 @@ export const feedApi = createApi({
         url: `/articles/${slug}/comments`,
       }),
     }),
+    // ======================================================
+    // mutations
+    // ======================================================
     favoriteArticle: builder.mutation<
       FavoriteArticleInDTO,
       FavoriteArticleParams
@@ -112,6 +120,24 @@ export const feedApi = createApi({
         await replaceCachedArticle(getState, queryFulfilled, dispatch, feedApi);
       },
     }),
+    createArticle: builder.mutation<CreateArticleInDTO, CreateArticleParams>({
+      query: ({ title, description, body, tags }) => {
+        const data: CreateArticleOutDTO = {
+          article: {
+            title,
+            description,
+            body,
+            tagList: tags.split(',').map((tag) => tag.trim()),
+          },
+        };
+
+        return {
+          url: '/articles',
+          method: 'post',
+          data,
+        };
+      },
+    }),
   }),
 });
 
@@ -123,4 +149,5 @@ export const {
   useGetCommentsForArticleQuery,
   useFavoriteArticleMutation,
   useUnfavoriteArticleMutation,
+  useCreateArticleMutation,
 } = feedApi;
