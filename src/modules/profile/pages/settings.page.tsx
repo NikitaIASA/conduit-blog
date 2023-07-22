@@ -10,7 +10,7 @@ import { ErrorsList } from "../../../common/components/errors-list/errors-list.c
 import { Input } from "../../../common/components/input/input.component";
 import { TextArea } from "../../../common/components/textarea/textarea.component";
 import { useAuth } from "../../auth/hooks/use-auth";
-import { useGetProfileQuery, useUpdateUserMutation } from "../api/repository";
+import { useUpdateUserMutation } from "../api/repository";
 
 interface SettingsPageProps {}
 
@@ -47,7 +47,7 @@ export const SettingsPage: FC<SettingsPageProps> = ({}) => {
       email: auth.user?.email || "",
       newPassword: "",
     },
-    resolver: yupResolver(validationSchema) as any,
+    resolver: yupResolver(validationSchema) as any, // temporary 
   });
 
   const onSubmit = async (values: SettingsFormValues) => {
